@@ -5,14 +5,13 @@ namespace Backend.Helpers;
 
 public static class Extensions
 {
-    private const string SectionName = "direction";
+    private const string SectionName = "DirectionApiSettings";
     
     public static IServiceCollection AddClient(this IServiceCollection services, IConfiguration configuration)
     {
         var options = configuration.GetOptions<DirectionOptions>(SectionName);
-        
-        services.Configure<DirectionOptions>(configuration.GetRequiredSection(SectionName));
-        services.AddScoped<IDirectionClient, DirectionClient>();
+        services.AddSingleton(options);
+        services.AddScoped<IDirectionClient, GraphHopperClient>();
         
         return services;
     }

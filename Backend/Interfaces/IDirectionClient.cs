@@ -4,5 +4,5 @@ namespace Backend.Interfaces;
 
 public interface IDirectionClient
 {
-    Task<List<DirectionDto>> GetDirectionAsync();
+    Task<List<DirectionDto>> GetDirectionAsync(DirectionDto startLocation, DirectionDto endLocation);
 }
