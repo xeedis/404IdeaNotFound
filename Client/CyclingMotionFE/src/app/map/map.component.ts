@@ -21,7 +21,6 @@ export class MapComponent implements OnInit, AfterViewInit {
   mapWidth = '100%';
   center: google.maps.LatLngLiteral = {lat: 50.0647, lng: 19.9450}; // Krakow coordinates
   zoom = 12;
-  krakowMarker: google.maps.LatLngLiteral = {lat: 50.0647, lng: 19.9450};
 
   routeForm: FormGroup;
   routePath: google.maps.LatLngLiteral[] = [];
@@ -65,7 +64,8 @@ export class MapComponent implements OnInit, AfterViewInit {
           };
           if (this.map.googleMap) {
             this.map.googleMap.setCenter(this.center);
-            this.map.googleMap.setZoom(12);
+            this.map.googleMap.setZoom(15);
+            this.setUserLocationMarker(this.center);
           }
         },
         (error) => {
@@ -84,6 +84,23 @@ export class MapComponent implements OnInit, AfterViewInit {
     }
   }
 
+  setUserLocationMarker(position: google.maps.LatLngLiteral) {
+    if (this.map.googleMap) {
+      new google.maps.Marker({
+        position: position,
+        map: this.map.googleMap,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 7,
+          fillColor: "#4285F4",
+          fillOpacity: 1,
+          strokeColor: "white",
+          strokeWeight: 2,
+        },
+      });
+    }
+  }
+
   useDefaultLocation() {
     // Use a default location (e.g., Krakow) if geolocation fails
     this.center = {lat: 50.0647, lng: 19.9450};
@@ -94,17 +111,29 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   initAutocomplete() {
+    const options = {
+      types: ['address'],
+      componentRestrictions: { country: 'pl' }, // Restrict to Poland
+      fields: ['address_components', 'geometry', 'name'],
+    };
+
     this.startPointAutocomplete = new google.maps.places.Autocomplete(
       this.startPointInput.nativeElement,
-      { types: ['geocode'] }
+      options
     );
     this.endPointAutocomplete = new google.maps.places.Autocomplete(
       this.endPointInput.nativeElement,
-      { types: ['geocode'] }
+      options
     );
 
     this.startPointAutocomplete.addListener('place_changed', () => this.onPlaceChanged('start'));
     this.endPointAutocomplete.addListener('place_changed', () => this.onPlaceChanged('end'));
+
+    // Bias the autocomplete results towards the user's current location
+    if (this.map.googleMap) {
+      this.startPointAutocomplete.bindTo('bounds', this.map.googleMap);
+      this.endPointAutocomplete.bindTo('bounds', this.map.googleMap);
+    }
   }
 
   onPlaceChanged(type: 'start' | 'end') {
@@ -114,8 +143,12 @@ export class MapComponent implements OnInit, AfterViewInit {
     if (place?.geometry?.location) {
       this.ngZone.run(() => {
         this.routeForm.patchValue({
-          [type === 'start' ? 'startPoint' : 'endPoint']: place.formatted_address
+          [type === 'start' ? 'startPoint' : 'endPoint']: place.name
         });
+        if (type === 'start' && place.geometry && place.geometry.location) {
+          this.map.googleMap?.setCenter(place.geometry.location.toJSON());
+          this.map.googleMap?.setZoom(15);
+        }
       });
     }
   }
