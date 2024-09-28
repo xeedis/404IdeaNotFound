@@ -9,7 +9,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddClient(builder.Configuration);
+builder.Services
+    .AddCors(cors =>
+    {
+        cors.AddPolicy("cors", x =>
+        {
+            x.WithOrigins("*")
+                .WithMethods("POST", "PUT", "DELETE")
+                .WithHeaders("Content-Type", "Authorization");
+        });
+    })
+    .AddClient(builder.Configuration);
 
 var app = builder.Build();
 
@@ -18,6 +28,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("cors");
 
 app.UseHttpsRedirection();
 
