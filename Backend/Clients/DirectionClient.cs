@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backend.DTO;
 using Backend.Helpers;
 using Backend.Interfaces;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Clients;
 
+[SuppressMessage("ReSharper", "ConvertToPrimaryConstructor")]
 public sealed class DirectionClient : IDirectionClient
 {
     private readonly DirectionOptions _options;
@@ -17,13 +19,13 @@ public sealed class DirectionClient : IDirectionClient
         _options = options.Value;
     }
 
-    public async Task<List<DirectionDto>> GetDirectionAsync()
+    public async Task<List<DirectionDto>> GetDirectionAsync(string origin, string destination)
     {
         var request = new DirectionsRequest
         {
             ApiKey = _options.Key,
-            Origin = "Warszawa",
-            Destination = "Kraków",
+            Origin = origin,
+            Destination = destination,
             TravelMode = TravelMode.Driving
         };
 

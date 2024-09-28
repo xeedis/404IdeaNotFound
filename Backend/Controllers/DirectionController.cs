@@ -6,12 +6,16 @@ namespace Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DirectionController(IDirectionClient directionClient) : ControllerBase
+public class DirectionController : ControllerBase
 {
-    private readonly IDirectionClient _directionClient = directionClient;
+    private readonly IDirectionClient _directionClient;
 
-    [HttpGet()]
-    public async Task<ActionResult<List<DirectionDto>>> GetRoute() 
-        =>await _directionClient.GetDirectionAsync();
-    
+    public DirectionController(IDirectionClient directionClient)
+    {
+        _directionClient = directionClient;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<DirectionDto>>> GetRoute([FromQuery] DestinationDto destination) 
+        =>await _directionClient.GetDirectionAsync(destination.Origin, destination.Destination);
 }
