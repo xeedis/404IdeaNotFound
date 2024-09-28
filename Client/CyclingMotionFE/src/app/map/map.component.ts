@@ -69,7 +69,7 @@ export class MapComponent implements OnInit, AfterViewInit {
           if (this.map.googleMap) {
             this.map.googleMap.setCenter(this.center);
             this.map.googleMap.setZoom(15);
-            this.setUserLocationMarker(this.center);
+            this.addCurrentLocationMarker(this.center);
           }
         },
         (error) => {
@@ -85,23 +85,6 @@ export class MapComponent implements OnInit, AfterViewInit {
     } else {
       console.warn('Geolocation is not supported by this browser.');
       this.useDefaultLocation();
-    }
-  }
-
-  setUserLocationMarker(position: google.maps.LatLngLiteral) {
-    if (this.map.googleMap) {
-      new google.maps.Marker({
-        position: position,
-        map: this.map.googleMap,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 7,
-          fillColor: "#4285F4",
-          fillOpacity: 1,
-          strokeColor: "white",
-          strokeWeight: 2,
-        },
-      });
     }
   }
 
@@ -240,6 +223,24 @@ export class MapComponent implements OnInit, AfterViewInit {
     } else {
       this.trafficLayer = new google.maps.TrafficLayer();
       this.trafficLayer.setMap(this.map.googleMap!);
+    }
+  }
+
+  addCurrentLocationMarker(position: google.maps.LatLngLiteral) {
+    if (this.map.googleMap) {
+      new google.maps.Marker({
+        position: position,
+        map: this.map.googleMap,
+        title: 'Your Location',
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 7,
+          fillColor: "#4285F4",
+          fillOpacity: 1,
+          strokeColor: "white",
+          strokeWeight: 2,
+        }
+      });
     }
   }
 }
