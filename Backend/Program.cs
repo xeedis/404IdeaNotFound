@@ -1,3 +1,5 @@
+using Backend.Helpers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -6,6 +8,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddClient(builder.Configuration);
 
 var app = builder.Build();
 
