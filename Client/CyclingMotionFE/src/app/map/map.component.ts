@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, NgZone } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -14,6 +14,8 @@ import { RouteApiService, RoutePoint } from '../../shared/api/route-api.service'
 })
 export class MapComponent implements OnInit, AfterViewInit {
   @ViewChild(GoogleMap) map!: GoogleMap;
+  @ViewChild('startPointInput') startPointInput!: ElementRef;
+  @ViewChild('endPointInput') endPointInput!: ElementRef;
 
   mapHeight = '100vh';
   mapWidth = '100%';
@@ -25,6 +27,9 @@ export class MapComponent implements OnInit, AfterViewInit {
   routePath: google.maps.LatLngLiteral[] = [];
   polylinePath: google.maps.Polyline | null = null;
 
+  startPointAutocomplete: google.maps.places.Autocomplete | null = null;
+  endPointAutocomplete: google.maps.places.Autocomplete | null = null;
+
   predefinedRoutes = [
     { id: '1', name: 'Krakow City Tour', start: 'Wawel Castle, Krakow', end: 'Main Market Square, Krakow' },
     { id: '2', name: 'Vistula River Route', start: 'Wawel Castle, Krakow', end: 'Tyniec Abbey, Krakow' }
@@ -32,7 +37,8 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   constructor(
     private fb: FormBuilder,
-    private routeApiService: RouteApiService
+    private routeApiService: RouteApiService,
+    private ngZone: NgZone
   ) {
     this.routeForm = this.fb.group({
       startPoint: [''],
@@ -42,11 +48,55 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    // Initialization logic here
+    this.getCurrentLocation();
   }
 
   ngAfterViewInit() {
-    // The map is now initialized
+    this.initAutocomplete();
+  }
+
+  getCurrentLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.center = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          this.map.googleMap?.setCenter(this.center);
+        },
+        () => {
+          console.error('Error getting current location');
+        }
+      );
+    }
+  }
+
+  initAutocomplete() {
+    this.startPointAutocomplete = new google.maps.places.Autocomplete(
+      this.startPointInput.nativeElement,
+      { types: ['geocode'] }
+    );
+    this.endPointAutocomplete = new google.maps.places.Autocomplete(
+      this.endPointInput.nativeElement,
+      { types: ['geocode'] }
+    );
+
+    this.startPointAutocomplete.addListener('place_changed', () => this.onPlaceChanged('start'));
+    this.endPointAutocomplete.addListener('place_changed', () => this.onPlaceChanged('end'));
+  }
+
+  onPlaceChanged(type: 'start' | 'end') {
+    const autocomplete = type === 'start' ? this.startPointAutocomplete : this.endPointAutocomplete;
+    const place = autocomplete?.getPlace();
+
+    if (place?.geometry?.location) {
+      this.ngZone.run(() => {
+        this.routeForm.patchValue({
+          [type === 'start' ? 'startPoint' : 'endPoint']: place.formatted_address
+        });
+      });
+    }
   }
 
   planRoute() {
