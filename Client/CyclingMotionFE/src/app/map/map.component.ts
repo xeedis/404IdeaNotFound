@@ -1,18 +1,21 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, NgZone, OnDestroy } from '@angular/core';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { RouteApiService, RoutePoint } from '../../shared/api/route-api.service';
+import { RoutePoint } from '../../shared/api/route-api.service';
+import { RoutePlanningService } from '../../shared/services/route-planning.service';
+import { DarkModeService } from '../../shared/services/dark-mode.service';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-map',
   standalone: true,
   imports: [GoogleMapsModule, CommonModule, ReactiveFormsModule],
   templateUrl: './map.component.html',
-  styles: [] // Remove this line if it exists
+  styles: []
 })
-export class MapComponent implements OnInit, AfterViewInit {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(GoogleMap) map!: GoogleMap;
   @ViewChild('startPointInput') startPointInput!: ElementRef;
   @ViewChild('endPointInput') endPointInput!: ElementRef;
@@ -23,14 +26,11 @@ export class MapComponent implements OnInit, AfterViewInit {
   zoom = 12;
 
   routeForm: FormGroup;
-  routePath: google.maps.LatLngLiteral[] = [];
   polylinePath: google.maps.Polyline | null = null;
 
   startPointAutocomplete: google.maps.places.Autocomplete | null = null;
   endPointAutocomplete: google.maps.places.Autocomplete | null = null;
 
-  startMarker: google.maps.Marker | null = null;
-  endMarker: google.maps.Marker | null = null;
   trafficLayer: google.maps.TrafficLayer | null = null;
 
   predefinedRoutes = [
@@ -38,10 +38,14 @@ export class MapComponent implements OnInit, AfterViewInit {
     { id: '2', name: 'Vistula River Route', start: 'Wawel Castle, Krakow', end: 'Tyniec Abbey, Krakow' }
   ];
 
+  private destroy$ = new Subject<void>();
+  mapStyles: google.maps.MapTypeStyle[] = [];
+
   constructor(
     private fb: FormBuilder,
-    private routeApiService: RouteApiService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private routePlanningService: RoutePlanningService,
+    private darkModeService: DarkModeService
   ) {
     this.routeForm = this.fb.group({
       startPoint: [''],
@@ -52,11 +56,20 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.getCurrentLocation();
+    this.darkModeService.darkMode$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isDarkMode => {
+        this.setMapStyles(isDarkMode);
+      });
   }
 
   ngAfterViewInit() {
     this.initAutocomplete();
   }
+  ngOnDestroy() {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 
   getCurrentLocation() {
     if (navigator.geolocation) {
@@ -142,76 +155,34 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   planRoute() {
     const { startPoint, endPoint } = this.routeForm.value;
-    if (startPoint && endPoint) {
-      this.addMarker(startPoint, 'Start');
-      this.addMarker(endPoint, 'End');
-      this.routeApiService.getRoutePoints(startPoint, endPoint).subscribe(
-        (points: RoutePoint[]) => {
-          this.drawRoute(points);
+    if (startPoint && endPoint && this.map.googleMap) {
+      this.routePlanningService.addMarker(this.map.googleMap, startPoint, 'Start');
+      this.routePlanningService.addMarker(this.map.googleMap, endPoint, 'End');
+      this.routePlanningService.planRoute(startPoint, endPoint).subscribe({
+        next: (points: RoutePoint[]) => {
+          if (this.polylinePath) {
+            this.polylinePath.setMap(null);
+          }
+          this.polylinePath = this.routePlanningService.drawRoute(this.map.googleMap!, points);
+          this.toggleTrafficLayer();
         },
-        (error) => {
+        error: (error) => {
           console.error('Error fetching route points:', error);
         }
-      );
+      });
     }
-  }
-
-  addMarker(address: string, label: 'Start' | 'End') {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ address: address }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        const position = results[0].geometry.location;
-        if (label === 'Start') {
-          if (this.startMarker) this.startMarker.setMap(null);
-          this.startMarker = new google.maps.Marker({
-            position: position,
-            map: this.map.googleMap,
-            label: label,
-          });
-        } else {
-          if (this.endMarker) this.endMarker.setMap(null);
-          this.endMarker = new google.maps.Marker({
-            position: position,
-            map: this.map.googleMap,
-            label: label,
-          });
-        }
-      }
-    });
-  }
-
-  drawRoute(points: RoutePoint[]) {
-    if (this.polylinePath) {
-      this.polylinePath.setMap(null);
-    }
-    this.polylinePath = new google.maps.Polyline({
-      path: points,
-      geodesic: true,
-      strokeColor: '#FF0000',
-      strokeOpacity: 1.0,
-      strokeWeight: 2
-    });
-    this.polylinePath.setMap(this.map.googleMap!);
-
-    // Adjust map bounds to fit the route
-    const bounds = new google.maps.LatLngBounds();
-    points.forEach(point => bounds.extend(point));
-    this.map.googleMap?.fitBounds(bounds);
-
-    // Add Traffic Layer
-    this.toggleTrafficLayer();
   }
 
   loadPredefinedRoute() {
     const selectedRouteId = this.routeForm.get('selectedRoute')?.value;
     const route = this.predefinedRoutes.find(r => r.id === selectedRouteId);
-    if (route) {
+    if (route && this.map.googleMap) {
       this.routeForm.patchValue({
         startPoint: route.start,
         endPoint: route.end
       });
-      this.addMarker(route.start, 'Start');
-      this.addMarker(route.end, 'End');
+      this.routePlanningService.addMarker(this.map.googleMap, route.start, 'Start');
+      this.routePlanningService.addMarker(this.map.googleMap, route.end, 'End');
       this.planRoute();
     }
   }
@@ -243,4 +214,92 @@ export class MapComponent implements OnInit, AfterViewInit {
       });
     }
   }
+
+  setMapStyles(isDarkMode: boolean) {
+    this.mapStyles = isDarkMode ? [
+      { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+      { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+      { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+      {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#d59563' }]
+      },
+      {
+        featureType: 'poi',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#d59563' }]
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'geometry',
+        stylers: [{ color: '#263c3f' }]
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#6b9a76' }]
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry',
+        stylers: [{ color: '#38414e' }]
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry.stroke',
+        stylers: [{ color: '#212a37' }]
+      },
+      {
+        featureType: 'road',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#9ca5b3' }]
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'geometry',
+        stylers: [{ color: '#746855' }]
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'geometry.stroke',
+        stylers: [{ color: '#1f2835' }]
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#f3d19c' }]
+      },
+      {
+        featureType: 'transit',
+        elementType: 'geometry',
+        stylers: [{ color: '#2f3948' }]
+      },
+      {
+        featureType: 'transit.station',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#d59563' }]
+      },
+      {
+        featureType: 'water',
+        elementType: 'geometry',
+        stylers: [{ color: '#17263c' }]
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.fill',
+        stylers: [{ color: '#515c6d' }]
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.stroke',
+        stylers: [{ color: '#17263c' }]
+      }
+    ] : [];
+
+    if (this.map && this.map.googleMap) {
+      this.map.googleMap.setOptions({ styles: this.mapStyles });
+    }
+  }
+
 }

@@ -1,5 +1,5 @@
 <div class="relative w-full h-screen">
-  <google-map [height]="mapHeight" [width]="mapWidth" [center]="center" [zoom]="zoom" class="w-full h-full">
+  <google-map [height]="mapHeight" [width]="mapWidth" [center]="center" [zoom]="zoom" [options]="{ styles: mapStyles }" class="w-full h-full">
   </google-map>
 
   <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-white bg-opacity-90 p-2 rounded-lg shadow-lg">
