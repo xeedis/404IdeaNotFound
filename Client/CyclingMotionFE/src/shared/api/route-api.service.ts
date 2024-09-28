@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 export interface RoutePoint {
   lat: number;
@@ -12,16 +11,16 @@ export interface RoutePoint {
   providedIn: 'root'
 })
 export class RouteApiService {
+  private apiUrl = 'http://localhost:5063/api/Direction'; // Replace with your actual API base URL
+
   constructor(private http: HttpClient) { }
 
   getRoutePoints(start: string, end: string): Observable<RoutePoint[]> {
-    // Replace 'assets/route-data.json' with the actual path to your JSON file
-    return this.http.get<RoutePoint[]>('assets/response.json').pipe(
-      map(data => data.map(point => ({
-        lat: point.lat,
-        lng: point.lng
-      })))
-    );
+    let params = new HttpParams()
+      .set('Origin', start)
+      .set('Destination', end);
+
+    return this.http.get<RoutePoint[]>(this.apiUrl, { params });
   }
 }
 

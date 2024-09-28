@@ -26,7 +26,7 @@ public sealed class DirectionClient : IDirectionClient
             ApiKey = _options.Key,
             Origin = origin,
             Destination = destination,
-            TravelMode = TravelMode.Driving
+            TravelMode = TravelMode.Bicycling
         };
 
         var response = await GoogleMaps.Directions.QueryAsync(request);
