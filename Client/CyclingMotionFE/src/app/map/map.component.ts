@@ -29,6 +29,9 @@ export class MapComponent implements OnInit, AfterViewInit {
   startPointAutocomplete: google.maps.places.Autocomplete | null = null;
   endPointAutocomplete: google.maps.places.Autocomplete | null = null;
 
+  startMarker: google.maps.Marker | null = null;
+  endMarker: google.maps.Marker | null = null;
+
   predefinedRoutes = [
     { id: '1', name: 'Krakow City Tour', start: 'Wawel Castle, Krakow', end: 'Main Market Square, Krakow' },
     { id: '2', name: 'Vistula River Route', start: 'Wawel Castle, Krakow', end: 'Tyniec Abbey, Krakow' }
@@ -114,7 +117,7 @@ export class MapComponent implements OnInit, AfterViewInit {
     const options = {
       types: ['address'],
       componentRestrictions: { country: 'pl' }, // Restrict to Poland
-      fields: ['address_components', 'geometry', 'name'],
+      fields: ['address_components', 'geometry', 'name', 'formatted_address'],
     };
 
     this.startPointAutocomplete = new google.maps.places.Autocomplete(
@@ -140,10 +143,10 @@ export class MapComponent implements OnInit, AfterViewInit {
     const autocomplete = type === 'start' ? this.startPointAutocomplete : this.endPointAutocomplete;
     const place = autocomplete?.getPlace();
 
-    if (place?.geometry?.location) {
+    if (place?.formatted_address) {
       this.ngZone.run(() => {
         this.routeForm.patchValue({
-          [type === 'start' ? 'startPoint' : 'endPoint']: place.name
+          [type === 'start' ? 'startPoint' : 'endPoint']: place.formatted_address
         });
         if (type === 'start' && place.geometry && place.geometry.location) {
           this.map.googleMap?.setCenter(place.geometry.location.toJSON());
@@ -156,6 +159,8 @@ export class MapComponent implements OnInit, AfterViewInit {
   planRoute() {
     const { startPoint, endPoint } = this.routeForm.value;
     if (startPoint && endPoint) {
+      this.addMarker(startPoint, 'Start');
+      this.addMarker(endPoint, 'End');
       this.routeApiService.getRoutePoints(startPoint, endPoint).subscribe(
         (points: RoutePoint[]) => {
           this.drawRoute(points);
@@ -165,6 +170,30 @@ export class MapComponent implements OnInit, AfterViewInit {
         }
       );
     }
+  }
+
+  addMarker(address: string, label: 'Start' | 'End') {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: address }, (results, status) => {
+      if (status === 'OK' && results && results[0]) {
+        const position = results[0].geometry.location;
+        if (label === 'Start') {
+          if (this.startMarker) this.startMarker.setMap(null);
+          this.startMarker = new google.maps.Marker({
+            position: position,
+            map: this.map.googleMap,
+            label: label,
+          });
+        } else {
+          if (this.endMarker) this.endMarker.setMap(null);
+          this.endMarker = new google.maps.Marker({
+            position: position,
+            map: this.map.googleMap,
+            label: label,
+          });
+        }
+      }
+    });
   }
 
   drawRoute(points: RoutePoint[]) {
@@ -201,6 +230,8 @@ export class MapComponent implements OnInit, AfterViewInit {
         startPoint: route.start,
         endPoint: route.end
       });
+      this.addMarker(route.start, 'Start');
+      this.addMarker(route.end, 'End');
       this.planRoute();
     }
   }
