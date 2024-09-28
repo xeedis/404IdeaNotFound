@@ -2,7 +2,7 @@
   <google-map [height]="mapHeight" [width]="mapWidth" [center]="center" [zoom]="zoom" class="w-full h-full">
     <map-marker [position]="center"></map-marker>
     <map-marker [position]="krakowMarker"></map-marker>
-    <map-polyline *ngIf="routePath.length > 0" [path]="routePath"></map-polyline>
+    <map-directions-renderer *ngIf="directionsResults$ | async as directionsResults" [directions]="directionsResults"></map-directions-renderer>
   </google-map>
 
   <div class="absolute top-4 right-3 z-10 bg-white bg-opacity-80 p-4 rounded-lg shadow-md">

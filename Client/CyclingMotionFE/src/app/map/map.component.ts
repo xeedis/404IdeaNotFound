@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { GoogleMapsModule } from '@angular/google-maps';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { GoogleMapsModule, MapDirectionsService } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable, map } from 'rxjs';
 
 @Component({
   selector: 'app-map',
@@ -11,6 +12,8 @@ import { FormsModule } from '@angular/forms';
   styles: [] // Remove this line if it exists
 })
 export class MapComponent implements OnInit {
+  @ViewChild(GoogleMapsModule) map!: google.maps.Map;
+
   mapHeight = '100vh';
   mapWidth = '100%';
   center: google.maps.LatLngLiteral = {lat: 50.0647, lng: 19.9450}; // Krakow coordinates
@@ -20,41 +23,40 @@ export class MapComponent implements OnInit {
   startPoint: string = '';
   endPoint: string = '';
   routePath: google.maps.LatLngLiteral[] = [];
+  directionsResults$: Observable<google.maps.DirectionsResult|undefined> | undefined;
 
   selectedRoute: string = '';
   predefinedRoutes = [
-    { id: '1', name: 'Krakow City Tour', path: [
-      {lat: 50.0647, lng: 19.9450},
-      {lat: 50.0619, lng: 19.9368},
-      {lat: 50.0541, lng: 19.9360},
-      {lat: 50.0547, lng: 19.9450}
-    ]},
-    { id: '2', name: 'Vistula River Route', path: [
-      {lat: 50.0547, lng: 19.9450},
-      {lat: 50.0500, lng: 19.9900},
-      {lat: 50.0450, lng: 20.0000},
-      {lat: 50.0400, lng: 20.0100}
-    ]}
+    { id: '1', name: 'Krakow City Tour', start: 'Wawel Castle, Krakow', end: 'Main Market Square, Krakow' },
+    { id: '2', name: 'Vistula River Route', start: 'Wawel Castle, Krakow', end: 'Tyniec Abbey, Krakow' }
   ];
+
+  constructor(private mapDirectionsService: MapDirectionsService) {}
 
   ngOnInit() {
     // Initialization logic here
   }
 
   planRoute() {
-    // Here you would typically call a route planning service
-    // For this example, we'll just create a simple route
-    this.routePath = [
-      this.center,
-      {lat: this.center.lat + 0.01, lng: this.center.lng + 0.01},
-      {lat: this.center.lat + 0.02, lng: this.center.lng + 0.02}
-    ];
+    if (this.startPoint && this.endPoint) {
+      const request: google.maps.DirectionsRequest = {
+        origin: this.startPoint,
+        destination: this.endPoint,
+        travelMode: google.maps.TravelMode.BICYCLING
+      };
+
+      this.directionsResults$ = this.mapDirectionsService.route(request).pipe(
+        map(response => response.result)
+      );
+    }
   }
 
   loadPredefinedRoute() {
     const route = this.predefinedRoutes.find(r => r.id === this.selectedRoute);
     if (route) {
-      this.routePath = route.path;
+      this.startPoint = route.start;
+      this.endPoint = route.end;
+      this.planRoute();
     }
   }
 }
