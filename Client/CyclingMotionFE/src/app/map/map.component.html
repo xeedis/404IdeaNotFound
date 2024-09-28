@@ -2,17 +2,17 @@
   <google-map [height]="mapHeight" [width]="mapWidth" [center]="center" [zoom]="zoom" [options]="{ styles: mapStyles }" class="w-full h-full">
   </google-map>
 
-  <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-white bg-opacity-90 p-2 rounded-lg shadow-lg">
+  <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 p-2 rounded-lg shadow-lg">
     <form [formGroup]="routeForm" class="flex items-center space-x-2">
-      <input #startPointInput formControlName="startPoint" placeholder="Start Point" class="px-3 py-1.5 w-48 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-      <input #endPointInput formControlName="endPoint" placeholder="End Point" class="px-3 py-1.5 w-48 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+      <input #startPointInput formControlName="startPoint" placeholder="Start Point" class="px-3 py-1.5 w-48 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+      <input #endPointInput formControlName="endPoint" placeholder="End Point" class="px-3 py-1.5 w-48 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200">
       <button (click)="planRoute()" class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out text-sm font-medium">
         Plan Route
       </button>
       <button (click)="toggleTrafficLayer()" class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out text-sm font-medium">
         Toggle Traffic
       </button>
-      <select formControlName="selectedRoute" (change)="loadPredefinedRoute()" class="px-3 py-1.5 w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+      <select formControlName="selectedRoute" (change)="loadPredefinedRoute()" class="px-3 py-1.5 w-64 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200">
         <option value="">Select a predefined route</option>
         <option *ngFor="let route of predefinedRoutes" [value]="route.id">{{ route.name }}</option>
       </select>

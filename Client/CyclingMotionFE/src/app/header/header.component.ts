@@ -15,9 +15,14 @@ import { DarkModeService } from '../../shared/services/dark-mode.service';
   styleUrl: './header.component.css'
 })
 export class HeaderComponent {
-  isOpen = false; // State to manage the mobile menu
+  isOpen = false;
+  isDarkMode = false;
 
-  constructor(private darkModeService: DarkModeService) {}
+  constructor(private darkModeService: DarkModeService) {
+    this.darkModeService.darkMode$.subscribe(isDarkMode => {
+      this.isDarkMode = isDarkMode;
+    });
+  }
 
   toggleDarkMode() {
     this.darkModeService.toggleDarkMode();
