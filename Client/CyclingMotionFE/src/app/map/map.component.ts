@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, NgZone, OnDest
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { RoutePoint } from '../../shared/api/route-api.service';
+import { Direction } from '../../shared/api/route-api.service';
 import { RoutePlanningService } from '../../shared/services/route-planning.service';
 import { DarkModeService } from '../../shared/services/dark-mode.service';
 import { takeUntil } from 'rxjs/operators';
@@ -140,13 +140,17 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     const autocomplete = type === 'start' ? this.startPointAutocomplete : this.endPointAutocomplete;
     const place = autocomplete?.getPlace();
 
-    if (place?.formatted_address) {
+    if (place?.geometry?.location) {
+      const location: Direction = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng()
+      };
       this.ngZone.run(() => {
         this.routeForm.patchValue({
-          [type === 'start' ? 'startPoint' : 'endPoint']: place.formatted_address
+          [type === 'start' ? 'startPoint' : 'endPoint']: location
         });
-        if (type === 'start' && place.geometry && place.geometry.location) {
-          this.map.googleMap?.setCenter(place.geometry.location.toJSON());
+        if (type === 'start') {
+          this.map.googleMap?.setCenter(location);
           this.map.googleMap?.setZoom(15);
         }
       });
@@ -154,12 +158,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   planRoute() {
-    const { startPoint, endPoint } = this.routeForm.value;
+    const startPoint = this.routeForm.get('startPoint')?.value as Direction;
+    const endPoint = this.routeForm.get('endPoint')?.value as Direction;
+
     if (startPoint && endPoint && this.map.googleMap) {
       this.routePlanningService.addMarker(this.map.googleMap, startPoint, 'Start');
       this.routePlanningService.addMarker(this.map.googleMap, endPoint, 'End');
       this.routePlanningService.planRoute(startPoint, endPoint).subscribe({
-        next: (points: RoutePoint[]) => {
+        next: (points: Direction[]) => {
           if (this.polylinePath) {
             this.polylinePath.setMap(null);
           }
@@ -181,8 +187,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         startPoint: route.start,
         endPoint: route.end
       });
-      this.routePlanningService.addMarker(this.map.googleMap, route.start, 'Start');
-      this.routePlanningService.addMarker(this.map.googleMap, route.end, 'End');
+      this.routePlanningService.addMarker(this.map.googleMap, route.start as unknown as Direction, 'Start');
+      this.routePlanningService.addMarker(this.map.googleMap, route.end as unknown as Direction, 'End');
       this.planRoute();
     }
   }

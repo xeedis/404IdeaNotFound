@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { RouteApiService, RoutePoint } from '../../shared/api/route-api.service';
+import { RouteApiService, Direction, GetRouteRequest } from '../../shared/api/route-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,25 +8,23 @@ import { RouteApiService, RoutePoint } from '../../shared/api/route-api.service'
 export class RoutePlanningService {
   constructor(private routeApiService: RouteApiService) {}
 
-  planRoute(startPoint: string, endPoint: string): Observable<RoutePoint[]> {
-    return this.routeApiService.getRoutePoints(startPoint, endPoint);
+  planRoute(startPoint: Direction, endPoint: Direction): Observable<Direction[]> {
+    const request: GetRouteRequest = {
+      startLocation: startPoint,
+      endLocation: endPoint
+    };
+    return this.routeApiService.getRoutePoints(request);
   }
 
-  addMarker(map: google.maps.Map, address: string, label: 'Start' | 'End'): void {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ address: address }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        const position = results[0].geometry.location;
-        new google.maps.Marker({
-          position: position,
-          map: map,
-          label: label,
-        });
-      }
+  addMarker(map: google.maps.Map, location: Direction, label: 'Start' | 'End'): void {
+    new google.maps.Marker({
+      position: location,
+      map: map,
+      label: label,
     });
   }
 
-  drawRoute(map: google.maps.Map, points: RoutePoint[]): google.maps.Polyline {
+  drawRoute(map: google.maps.Map, points: Direction[]): google.maps.Polyline {
     const polyline = new google.maps.Polyline({
       path: points,
       geodesic: true,

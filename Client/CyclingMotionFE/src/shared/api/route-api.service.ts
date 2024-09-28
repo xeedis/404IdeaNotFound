@@ -1,10 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
-export interface RoutePoint {
+export interface Direction {
   lat: number;
   lng: number;
+}
+
+export interface GetRouteRequest {
+  startLocation: Direction;
+  endLocation: Direction;
 }
 
 @Injectable({
@@ -15,12 +20,8 @@ export class RouteApiService {
 
   constructor(private http: HttpClient) { }
 
-  getRoutePoints(start: string, end: string): Observable<RoutePoint[]> {
-    let params = new HttpParams()
-      .set('Origin', start)
-      .set('Destination', end);
-
-    return this.http.get<RoutePoint[]>(this.apiUrl, { params });
+  getRoutePoints(request: GetRouteRequest): Observable<Direction[]> {
+    return this.http.post<Direction[]>(this.apiUrl, request);
   }
 }
 
