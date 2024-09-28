@@ -63,12 +63,33 @@ export class MapComponent implements OnInit, AfterViewInit {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
-          this.map.googleMap?.setCenter(this.center);
+          if (this.map.googleMap) {
+            this.map.googleMap.setCenter(this.center);
+            this.map.googleMap.setZoom(12);
+          }
         },
-        () => {
-          console.error('Error getting current location');
+        (error) => {
+          console.warn('Error getting current location:', error.message);
+          this.useDefaultLocation();
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
         }
       );
+    } else {
+      console.warn('Geolocation is not supported by this browser.');
+      this.useDefaultLocation();
+    }
+  }
+
+  useDefaultLocation() {
+    // Use a default location (e.g., Krakow) if geolocation fails
+    this.center = {lat: 50.0647, lng: 19.9450};
+    if (this.map.googleMap) {
+      this.map.googleMap.setCenter(this.center);
+      this.map.googleMap.setZoom(12);
     }
   }
 

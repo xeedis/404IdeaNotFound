@@ -15,39 +15,19 @@ export class RouteApiService {
   getRoutePoints(start: string, end: string): Observable<RoutePoint[]> {
     // Mock data for testing
     const mockRoutePoints: RoutePoint[] = [
-      { lat: 37.782, lng: -122.447 },
-      { lat: 37.782, lng: -122.445 },
-      { lat: 37.782, lng: -122.443 },
-      { lat: 37.782, lng: -122.441 },
-      { lat: 37.782, lng: -122.439 },
-      { lat: 37.782, lng: -122.437 },
-      { lat: 37.782, lng: -122.435 },
-      { lat: 37.785, lng: -122.447 },
-      { lat: 37.785, lng: -122.445 },
-      { lat: 37.785, lng: -122.443 },
-      { lat: 37.785, lng: -122.441 },
-      { lat: 37.785, lng: -122.439 },
-      { lat: 37.785, lng: -122.437 },
-      { lat: 37.785, lng: -122.435 },
+      { lat: 50.0647, lng: 19.9450 },
+      { lat: 50.0646, lng: 19.9460 },
+      { lat: 50.0645, lng: 19.9470 },
+      { lat: 50.0644, lng: 19.9480 },
+      { lat: 50.0643, lng: 19.9490 },
+      { lat: 50.0642, lng: 19.9500 },
+      { lat: 50.0641, lng: 19.9510 },
+      { lat: 50.0640, lng: 19.9520 },
+      { lat: 50.0639, lng: 19.9530 },
+      { lat: 50.0638, lng: 19.9540 },
     ];
 
     // Simulating an API call
     return of(mockRoutePoints);
   }
 }
-// var heatmapData = [
-//   new google.maps.LatLng(37.782, -122.447),
-//   new google.maps.LatLng(37.782, -122.445),
-//   new google.maps.LatLng(37.782, -122.443),
-//   new google.maps.LatLng(37.782, -122.441),
-//   new google.maps.LatLng(37.782, -122.439),
-//   new google.maps.LatLng(37.782, -122.437),
-//   new google.maps.LatLng(37.782, -122.435),
-//   new google.maps.LatLng(37.785, -122.447),
-//   new google.maps.LatLng(37.785, -122.445),
-//   new google.maps.LatLng(37.785, -122.443),
-//   new google.maps.LatLng(37.785, -122.441),
-//   new google.maps.LatLng(37.785, -122.439),
-//   new google.maps.LatLng(37.785, -122.437),
-//   new google.maps.LatLng(37.785, -122.435)
-// ];
