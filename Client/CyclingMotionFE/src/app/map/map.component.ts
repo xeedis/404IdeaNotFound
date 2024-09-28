@@ -31,6 +31,7 @@ export class MapComponent implements OnInit, AfterViewInit {
 
   startMarker: google.maps.Marker | null = null;
   endMarker: google.maps.Marker | null = null;
+  trafficLayer: google.maps.TrafficLayer | null = null;
 
   predefinedRoutes = [
     { id: '1', name: 'Krakow City Tour', start: 'Wawel Castle, Krakow', end: 'Main Market Square, Krakow' },
@@ -197,15 +198,9 @@ export class MapComponent implements OnInit, AfterViewInit {
   }
 
   drawRoute(points: RoutePoint[]) {
-    if (!this.map || !this.map.googleMap) {
-      console.error('Google Map not initialized');
-      return;
-    }
-
     if (this.polylinePath) {
       this.polylinePath.setMap(null);
     }
-
     this.polylinePath = new google.maps.Polyline({
       path: points,
       geodesic: true,
@@ -213,13 +208,15 @@ export class MapComponent implements OnInit, AfterViewInit {
       strokeOpacity: 1.0,
       strokeWeight: 2
     });
-
-    this.polylinePath.setMap(this.map.googleMap);
+    this.polylinePath.setMap(this.map.googleMap!);
 
     // Adjust map bounds to fit the route
     const bounds = new google.maps.LatLngBounds();
-    points.forEach((point) => bounds.extend(point));
-    this.map.googleMap.fitBounds(bounds);
+    points.forEach(point => bounds.extend(point));
+    this.map.googleMap?.fitBounds(bounds);
+
+    // Add Traffic Layer
+    this.toggleTrafficLayer();
   }
 
   loadPredefinedRoute() {
@@ -233,6 +230,16 @@ export class MapComponent implements OnInit, AfterViewInit {
       this.addMarker(route.start, 'Start');
       this.addMarker(route.end, 'End');
       this.planRoute();
+    }
+  }
+
+  toggleTrafficLayer() {
+    if (this.trafficLayer) {
+      this.trafficLayer.setMap(null);
+      this.trafficLayer = null;
+    } else {
+      this.trafficLayer = new google.maps.TrafficLayer();
+      this.trafficLayer.setMap(this.map.googleMap!);
     }
   }
 }
