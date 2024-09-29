@@ -15,10 +15,7 @@
       <button (click)="toggleAccidents()" class="px-4 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out text-sm font-medium">
         {{ showAccidents ? 'Hide Accidents' : 'Show Accidents' }}
       </button>
-      <select formControlName="selectedRoute" (change)="loadPredefinedRoute()" class="px-3 py-1.5 w-64 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-        <option value="">Select a predefined route</option>
-        <option *ngFor="let route of predefinedRoutes" [value]="route.id">{{ route.name }}</option>
-      </select>
+
     </form>
   </div>
 </div>

@@ -37,10 +37,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   trafficLayer: google.maps.TrafficLayer | null = null;
 
-  predefinedRoutes = [
-    { id: '1', name: 'Krakow City Tour', start: 'Wawel Castle, Krakow', end: 'Main Market Square, Krakow' },
-    { id: '2', name: 'Vistula River Route', start: 'Wawel Castle, Krakow', end: 'Tyniec Abbey, Krakow' }
-  ];
 
   private destroy$ = new Subject<void>();
   mapStyles: google.maps.MapTypeStyle[] = [];
@@ -223,19 +219,19 @@ toggleAccidents() {
     return null;
   }
 
-  loadPredefinedRoute() {
-    const selectedRouteId = this.routeForm.get('selectedRoute')?.value;
-    const route = this.predefinedRoutes.find(r => r.id === selectedRouteId);
-    if (route && this.map.googleMap) {
-      this.routeForm.patchValue({
-        startPoint: route.start,
-        endPoint: route.end
-      });
-      this.routePlanningService.addMarker(this.map.googleMap, route.start as unknown as Direction, 'Start');
-      this.routePlanningService.addMarker(this.map.googleMap, route.end as unknown as Direction, 'End');
-      this.planRoute();
-    }
-  }
+  // loadPredefinedRoute() {
+  //   const selectedRouteId = this.routeForm.get('selectedRoute')?.value;
+  //   const route = this.predefinedRoutes.find(r => r.id === selectedRouteId);
+  //   if (route && this.map.googleMap) {
+  //     this.routeForm.patchValue({
+  //       startPoint: route.start,
+  //       endPoint: route.end
+  //     });
+  //     this.routePlanningService.addMarker(this.map.googleMap, route.start as unknown as Direction, 'Start');
+  //     this.routePlanningService.addMarker(this.map.googleMap, route.end as unknown as Direction, 'End');
+  //     this.planRoute();
+  //   }
+  // }
 
   toggleTrafficLayer() {
     if (this.trafficLayer) {
