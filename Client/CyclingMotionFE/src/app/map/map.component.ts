@@ -41,6 +41,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   mapStyles: google.maps.MapTypeStyle[] = [];
 
+  startLocation: Direction | null = null;
+  endLocation: Direction | null = null;
+
   constructor(
     private fb: FormBuilder,
     private ngZone: NgZone,
@@ -147,8 +150,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       };
       this.ngZone.run(() => {
         this.routeForm.patchValue({
-          [type === 'start' ? 'startPoint' : 'endPoint']: location
+          [type === 'start' ? 'startPoint' : 'endPoint']: place.formatted_address || place.name
         });
+        // Store the location object in a separate property
+        this[type === 'start' ? 'startLocation' : 'endLocation'] = location;
         if (type === 'start') {
           this.map.googleMap?.setCenter(location);
           this.map.googleMap?.setZoom(15);
@@ -158,8 +163,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   planRoute() {
-    const startPoint = this.routeForm.get('startPoint')?.value as Direction;
-    const endPoint = this.routeForm.get('endPoint')?.value as Direction;
+    const startPoint = this.startLocation;
+    const endPoint = this.endLocation;
 
     if (startPoint && endPoint && this.map.googleMap) {
       this.routePlanningService.addMarker(this.map.googleMap, startPoint, 'Start');
@@ -177,6 +182,25 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+  
+  private getDirectionFromInput(controlName: 'startPoint' | 'endPoint'): Direction | null {
+    const input = this.routeForm.get(controlName)?.value;
+    if (typeof input === 'string') {
+      // If it's a string (address), we need to geocode it
+      return this.geocodeAddress(input);
+    } else if (input && typeof input === 'object' && 'lat' in input && 'lng' in input) {
+      // If it's already a Direction object, return it
+      return input as Direction;
+    }
+    return null;
+  }
+  
+  private geocodeAddress(address: string): Direction | null {
+    // This is a synchronous method, but in a real application, you'd want to use
+    // Google's Geocoding service asynchronously. For now, we'll return null.
+    console.warn('Geocoding not implemented. Address:', address);
+    return null;
   }
 
   loadPredefinedRoute() {
