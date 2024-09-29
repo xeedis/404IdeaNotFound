@@ -52,7 +52,6 @@ internal sealed class BrdClient : IBrdClient
             new("wybrane_wojewodztwa[]", "12"),
             new("rodzaj_miejsca[]", "3"),
             new("q", ""),
-            new("dzientyg[]", "6"),
             new("groupBy", "POW"),
             new("obszar_mapy[topRightCorner][lat]", $"{rightCornerLat}"),
             new("obszar_mapy[topRightCorner][lng]", $"{rightCornerLng}"),
