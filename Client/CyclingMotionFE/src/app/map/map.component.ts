@@ -423,7 +423,20 @@ toggleAccidents() {
       this.tooltipInfoWindow.close();
     }
 
-    this.routeTooltip = `Average Speed: ${averageSpeed.toFixed(2)} km/h`;
+    const carIcon = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 16H9m10 0h3v-3.15a1 1 0 00-.84-.99L16 11l-2.7-3.6a1 1 0 00-.8-.4H5.8a1 1 0 00-.8.4L2.3 11l-5.16.86a1 1 0 00-.84.99V16h3m16 0H3"></path>
+        <circle cx="6.5" cy="16.5" r="2.5"></circle>
+        <circle cx="17.5" cy="16.5" r="2.5"></circle>
+      </svg>
+    `;
+
+    this.routeTooltip = `
+      <div style="display: flex; align-items: center;">
+        ${carIcon}
+        <span style="margin-left: 8px;">Average Speed: ${averageSpeed.toFixed(2)} km/h</span>
+      </div>
+    `;
 
     this.tooltipInfoWindow = new google.maps.InfoWindow({
       content: `<div id="route-tooltip">${this.routeTooltip}</div>`,

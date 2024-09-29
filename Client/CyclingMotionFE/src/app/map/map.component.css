@@ -6,3 +6,12 @@
   font-size: 14px;
   max-width: 300px;
 }
+
+#route-tooltip {
+  display: flex;
+  align-items: center;
+}
+
+#route-tooltip svg {
+  margin-right: 8px;
+}
