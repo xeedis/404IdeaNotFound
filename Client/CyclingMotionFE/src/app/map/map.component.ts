@@ -386,11 +386,19 @@ toggleAccidents() {
           position: { lat: accident.lat, lng: accident.lng },
           map: this.map.googleMap,
           icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 7,
-            fillColor: "#FF0000",
-            fillOpacity: 0.7,
-            strokeWeight: 0
+            path: 'M -1,1 1,1 0,-1 z',
+            fillColor: '#FF0000',
+            fillOpacity: 0.8,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF',
+            scale: 8,
+            labelOrigin: new google.maps.Point(0, -0.5)
+          },
+          label: {
+            text: '!',
+            color: 'white',
+            fontSize: '12px',
+            fontWeight: 'bold'
           }
         });
         this.accidentMarkers.push(marker);
