@@ -17,7 +17,6 @@ public static class Extensions
         services.AddScoped<IDirectionClient, GraphHopperClient>();
         var brdOptions = configuration.GetOptions<BrdOptions>("brd");
         
-        services.Configure<DirectionOptions>(configuration.GetRequiredSection(SectionName));
         services.Configure<BrdOptions>(configuration.GetRequiredSection("brd"));
         services.AddHttpClient<IBrdClient, BrdClient>(client =>
         {
