@@ -1,0 +1,16 @@
+#route-tooltip {
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 7px 1px rgba(0,0,0,0.3);
+  font-size: 24px;
+  max-width: 300px;
+}
+
+#route-tooltip {
+  display: flex;
+  align-items: center;
+}
+
+#route-tooltip svg {
+  margin-right: 8px;
+}

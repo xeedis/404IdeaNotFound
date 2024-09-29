@@ -1,0 +1,17 @@
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+
+.typed-text {
+    display: inline-block;
+    align-items: center;
+    border-right: 2px solid black;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: typing 4s steps(50, end), blink 0.75s step-end infinite;
+}

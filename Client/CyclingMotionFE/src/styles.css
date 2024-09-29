@@ -1,0 +1,39 @@
+/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+body {
+  background-color: white;
+  color: #1a202c; /* gray-900 */
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a202c; /* gray-900 */
+    color: #f7fafc; /* gray-100 */
+  }
+}
+
+/* Dark mode styles */
+.dark {
+  background-color: #1a202c;
+  color: #f7fafc;
+}
+
+.dark input, .dark textarea, .dark select {
+  background-color: #2d3748;
+  color: #f7fafc;
+  border-color: #4a5568;
+}
+
+.dark button {
+  background-color: #4a5568;
+  color: #f7fafc;
+}
+
+.dark button:hover {
+  background-color: #2d3748;
+}

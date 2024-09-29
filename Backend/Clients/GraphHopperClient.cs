@@ -10,15 +10,17 @@ namespace Backend.Clients;
 
 public class GraphHopperClient : IDirectionClient
 {
+    private readonly IGoogleMatrixClient _googleMatrixClient;
     private readonly string _apiKey;
     private readonly string baseUrl = "https://graphhopper.com/api/1/route";
 
-    public GraphHopperClient(DirectionOptions _options)
+    public GraphHopperClient(DirectionOptions _options, IGoogleMatrixClient googleMatrixClient)
     {
+        _googleMatrixClient = googleMatrixClient;
         _apiKey = _options.Key;
     }
 
-    public async Task<List<DirectionDto>> GetDirectionAsync(DirectionDto startLocation, DirectionDto endLocation)
+    public async Task<DirectionSummaryDto> GetDirectionAsync(DirectionDto startLocation, DirectionDto endLocation)
     {
         //Change it into factory later
         HttpClient client = new();
@@ -48,6 +50,14 @@ public class GraphHopperClient : IDirectionClient
 
         var responseBody = await response.Content.ReadAsStringAsync();
         var mappedResponse = JsonConvert.DeserializeObject<RouteResponse>(responseBody);
-        return mappedResponse.Paths.SelectMany(a => PolylineDecoder.Decode(a.Points)).ToList();
+
+        var points = mappedResponse.Paths.SelectMany(a => PolylineDecoder.Decode(a.Points)).ToList();
+        var averageSpeed = await _googleMatrixClient.GetAverageCarSpeed(points.FirstOrDefault(),points.LastOrDefault());
+
+        return new DirectionSummaryDto
+        {
+            AverageSpeed = averageSpeed,
+            Points = points
+        };
     }
 }

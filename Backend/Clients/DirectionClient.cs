@@ -28,20 +28,20 @@
 //         };
 //
 //         var response = await GoogleMaps.Directions.QueryAsync(request);
-//         
+//
 //         if(response.Status is not DirectionsStatusCodes.OK)
 //             throw new Exception(response.Status.ToString());
-//         
+//
 //         var route = response.Routes.FirstOrDefault();
-//         
+//
 //         var overviewPolyline = route?.OverviewPath.Points;
 //
 //         var result = overviewPolyline?
 //             .Select(point => new DirectionDto
 //             {
-//                 Lat = point.Latitude, 
+//                 Lat = point.Latitude,
 //                 Lng = point.Longitude
-//                 
+//
 //             })
 //             .ToList();
 //

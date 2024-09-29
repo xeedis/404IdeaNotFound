@@ -11,6 +11,6 @@ public class DirectionController(IDirectionClient directionClient) : ControllerB
     private readonly IDirectionClient _directionClient = directionClient;
 
     [HttpPost()]
-    public async Task<ActionResult<List<DirectionDto>>> GetRoute(GetRouteRequest request)
-        => await _directionClient.GetDirectionAsync(request.StartLocation, request.EndLocation);
+    public async Task<ActionResult<DirectionSummaryDto>> GetRoute(GetRouteRequest requestDto)
+        => await _directionClient.GetDirectionAsync(requestDto.StartLocation, requestDto.EndLocation);
 }
