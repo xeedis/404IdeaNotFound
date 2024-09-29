@@ -33,7 +33,6 @@ internal sealed class BrdClient : IBrdClient
             {
                 Lat = county.FallbackCenterLatitude, 
                 Lng = county.FallbackCenterLongitude
-                
             })
             .Distinct()
             .ToList();

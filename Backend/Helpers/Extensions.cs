@@ -9,16 +9,16 @@ public static class Extensions
     
     public static IServiceCollection AddClient(this IServiceCollection services, IConfiguration configuration)
     {
-        var options = configuration.GetOptions<DirectionOptions>(SectionName);
-        services.AddSingleton(options);
+        var directionOptions = configuration.GetOptions<DirectionOptions>(SectionName);
+        services.AddSingleton(directionOptions);
         services.AddScoped<IDirectionClient, GraphHopperClient>();
-        var options = configuration.GetOptions<BrdOptions>("brd");
+        var brdOptions = configuration.GetOptions<BrdOptions>("brd");
         
         services.Configure<DirectionOptions>(configuration.GetRequiredSection(SectionName));
         services.Configure<BrdOptions>(configuration.GetRequiredSection("brd"));
         services.AddHttpClient<IBrdClient, BrdClient>(client =>
         {
-            client.BaseAddress = new Uri(options.Url);
+            client.BaseAddress = new Uri(brdOptions.Url);
         });
         
         services.AddScoped<IBrdClient, BrdClient>();

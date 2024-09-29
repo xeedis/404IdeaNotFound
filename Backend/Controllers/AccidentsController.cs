@@ -15,7 +15,7 @@ public class AccidentsController : ControllerBase
         _brdClient = brdClient;
     }
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IEnumerable<BrdDto>> GetAccidents([FromQuery] BrdRequestDto request)
         => await _brdClient.GetAccidents(request.StartPoint, request.EndPoint);
 }
