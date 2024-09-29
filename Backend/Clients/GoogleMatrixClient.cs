@@ -1,3 +1,4 @@
+using System.Globalization;
 using Backend.DTO;
 using Backend.Helpers;
 using Newtonsoft.Json.Linq;
@@ -15,22 +16,28 @@ public class GoogleMatrixClient : IGoogleMatrixClient
 
     public async Task<double> GetAverageCarSpeed(DirectionDto startPoint, DirectionDto destinationPoint)
     {
-        var origin = $"{startPoint.Lat}%2C{startPoint.Lng}";
-        var destination = $"{destinationPoint.Lat}%2C{destinationPoint.Lng}";
+        var culture = CultureInfo.InvariantCulture;
+
+        var origin = $"{startPoint.Lat.ToString(culture)},{startPoint.Lng.ToString(culture)}";
+        var destination = $"{destinationPoint.Lat.ToString(culture)},{destinationPoint.Lng.ToString(culture)}";
+        
+        var encodedOrigin = Uri.EscapeDataString(origin);
+        var encodedDestination = Uri.EscapeDataString(destination);
 
         using var client = new HttpClient();
         var requestUri =
-            $"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin}&destinations={destination}&key={_apiKey}&mode=driving";
+            $"https://maps.googleapis.com/maps/api/distancematrix/json?destinations={encodedDestination}&origins={encodedOrigin}&mode=driving&key={_apiKey}";
+
 
         var response = await client.GetAsync(requestUri);
         var content = await response.Content.ReadAsStringAsync();
         var jsonResponse = JObject.Parse(content);
 
         var element = jsonResponse["rows"][0]["elements"][0];
-        var distance = (long)element["distance"]["value"]; // in meters
-        var duration = (long)element["duration"]["value"]; // in seconds
-        var distanceInKm = distance / 1000.0; // convert meters to kilometers
-        var timeInHours = duration / 3600.0; // convert seconds to hours
+        var distance = (long)element["distance"]["value"]; 
+        var duration = (long)element["duration"]["value"]; 
+        var distanceInKm = distance / 1000.0; 
+        var timeInHours = duration / 3600.0; 
 
         var averageSpeed = distanceInKm / timeInHours;
         return averageSpeed;

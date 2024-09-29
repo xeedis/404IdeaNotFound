@@ -9,7 +9,7 @@ public class AverageCarSpeedController(IGoogleMatrixClient googleMatrixClient) :
 {
     private readonly IGoogleMatrixClient _googleMatrixClient = googleMatrixClient;
 
-    [HttpPost()]
+    [HttpPost]
     public async Task<double> GetRoute(GetRouteRequest request)
         => await _googleMatrixClient.GetAverageCarSpeed(request.StartLocation, request.EndLocation);
 }
