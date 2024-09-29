@@ -1,8 +1,10 @@
+using Backend.DTO;
+
 namespace Backend.Helpers;
 
 public static class PolylineDecoder
 {
-    public static List<(double lat, double lng)> Decode(string encodedPolyline)
+    public static List<DirectionDto> Decode(string encodedPolyline)
     {
         if (string.IsNullOrEmpty(encodedPolyline))
             return null;
@@ -11,7 +13,7 @@ public static class PolylineDecoder
         var index = 0;
         var currentLat = 0;
         var currentLng = 0;
-        var poly = new List<(double lat, double lng)>();
+        var poly = new List<DirectionDto>();
 
         while (index < polylineChars.Length)
         {
@@ -42,7 +44,11 @@ public static class PolylineDecoder
 
             var lat = currentLat / 1e5;
             var lng = currentLng / 1e5;
-            poly.Add((lat, lng));
+            poly.Add(new DirectionDto
+            {
+                Lat = lat,
+                Lng = lng
+            });
         }
 
         return poly;
