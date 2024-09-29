@@ -15,6 +15,16 @@ public static class Extensions
         services.AddSingleton(directionOptions);
         services.AddSingleton(googleMatrixClientOptions);
         services.AddScoped<IDirectionClient, GraphHopperClient>();
+        var brdOptions = configuration.GetOptions<BrdOptions>("brd");
+        
+        services.Configure<DirectionOptions>(configuration.GetRequiredSection(SectionName));
+        services.Configure<BrdOptions>(configuration.GetRequiredSection("brd"));
+        services.AddHttpClient<IBrdClient, BrdClient>(client =>
+        {
+            client.BaseAddress = new Uri(brdOptions.Url);
+        });
+        
+        services.AddScoped<IBrdClient, BrdClient>();
         services.AddScoped<IGoogleMatrixClient, GoogleMatrixClient>();
         
         return services;
