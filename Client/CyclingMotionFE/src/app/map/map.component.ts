@@ -197,6 +197,13 @@ toggleAccidents() {
             this.fetchAndDisplayAccidents();
           }
           this.addRouteTooltip(response.points, response.averageSpeed);
+
+          // Add click event listener to the polyline
+          this.polylinePath.addListener('click', (event: google.maps.MapMouseEvent) => {
+            if (event.latLng) {
+              this.showTooltipAtPosition(event.latLng, response.averageSpeed);
+            }
+          });
         },
         error: (error) => {
           console.error('Error fetching route points:', error);
@@ -399,25 +406,31 @@ toggleAccidents() {
   }
 
   private addRouteTooltip(points: Direction[], averageSpeed: number) {
-    if (this.tooltipInfoWindow) {
-      this.tooltipInfoWindow.close();
-    }
-
-    const midPoint = points[Math.floor(points.length / 2)];
-    
-    this.routeTooltip = `Average Speed: ${averageSpeed.toFixed(2)} km/h`;
-
-    this.tooltipInfoWindow = new google.maps.InfoWindow({
-      content: `<div id="route-tooltip">${this.routeTooltip}</div>`,
-      position: midPoint
-    });
-
-    this.tooltipInfoWindow.open(this.map.googleMap);
+    const midPoint = new google.maps.LatLng(
+      points[Math.floor(points.length / 2)].lat,
+      points[Math.floor(points.length / 2)].lng
+    );
+    this.showTooltipAtPosition(midPoint, averageSpeed);
 
     // Add a listener to close the tooltip when clicking on the map
     this.map.googleMap?.addListener('click', () => {
       this.tooltipInfoWindow?.close();
     });
+  }
+
+  private showTooltipAtPosition(position: google.maps.LatLng, averageSpeed: number) {
+    if (this.tooltipInfoWindow) {
+      this.tooltipInfoWindow.close();
+    }
+
+    this.routeTooltip = `Average Speed: ${averageSpeed.toFixed(2)} km/h`;
+
+    this.tooltipInfoWindow = new google.maps.InfoWindow({
+      content: `<div id="route-tooltip">${this.routeTooltip}</div>`,
+      position: position
+    });
+
+    this.tooltipInfoWindow.open(this.map.googleMap);
   }
 
   updateRouteTooltip(message: string) {
