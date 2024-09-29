@@ -5,13 +5,17 @@ namespace Backend.Helpers;
 
 public static class Extensions
 {
-    private const string SectionName = "DirectionApiSettings";
+    private const string DirectionOptionsSectionName = "DirectionApiSettings";
+    private const string GoogleMatrixClientOptionsSectionName = "GoogleMatrixClientOptionsSectionName";
     
     public static IServiceCollection AddClient(this IServiceCollection services, IConfiguration configuration)
     {
-        var options = configuration.GetOptions<DirectionOptions>(SectionName);
-        services.AddSingleton(options);
+        var directionOptions = configuration.GetOptions<DirectionOptions>(DirectionOptionsSectionName);
+        var googleMatrixClientOptions = configuration.GetOptions<GoogleMatrixClientOptions>(GoogleMatrixClientOptionsSectionName);
+        services.AddSingleton(directionOptions);
+        services.AddSingleton(googleMatrixClientOptions);
         services.AddScoped<IDirectionClient, GraphHopperClient>();
+        services.AddScoped<IGoogleMatrixClient, GoogleMatrixClient>();
         
         return services;
     }
