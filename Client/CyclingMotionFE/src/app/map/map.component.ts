@@ -10,6 +10,7 @@ import { Subject } from 'rxjs';
 import { BrdDto } from '../../shared/api/route-api.service';
 import { GetRouteRequest } from '../../shared/api/route-api.service';
 import { RouteApiService } from '../../shared/api/route-api.service';
+import { RouteResponse } from '../../shared/api/route-api.service';
 
 @Component({
   selector: 'app-map',
@@ -185,17 +186,17 @@ toggleAccidents() {
       this.routePlanningService.addMarker(this.map.googleMap, startPoint, 'Start');
       this.routePlanningService.addMarker(this.map.googleMap, endPoint, 'End');
       this.routePlanningService.planRoute(startPoint, endPoint).subscribe({
-        next: (points: Direction[]) => {
+        next: (response: RouteResponse) => {
           if (this.polylinePath) {
             this.polylinePath.setMap(null);
           }
-          this.polylinePath = this.routePlanningService.drawRoute(this.map.googleMap!, points);
+          this.polylinePath = this.routePlanningService.drawRoute(this.map.googleMap!, response.points);
           this.toggleTrafficLayer();
           this.clearAccidentMarkers();
           if (this.showAccidents) {
             this.fetchAndDisplayAccidents();
           }
-          this.addRouteTooltip(points);
+          this.addRouteTooltip(response.points, response.averageSpeed);
         },
         error: (error) => {
           console.error('Error fetching route points:', error);
@@ -397,13 +398,15 @@ toggleAccidents() {
     this.accidentMarkers = [];
   }
 
-  private addRouteTooltip(points: Direction[]) {
+  private addRouteTooltip(points: Direction[], averageSpeed: number) {
     if (this.tooltipInfoWindow) {
       this.tooltipInfoWindow.close();
     }
 
     const midPoint = points[Math.floor(points.length / 2)];
     
+    this.routeTooltip = `Average Speed: ${averageSpeed.toFixed(2)} km/h`;
+
     this.tooltipInfoWindow = new google.maps.InfoWindow({
       content: `<div id="route-tooltip">${this.routeTooltip}</div>`,
       position: midPoint
@@ -411,7 +414,7 @@ toggleAccidents() {
 
     this.tooltipInfoWindow.open(this.map.googleMap);
 
-    // Dodajemy nasłuchiwanie na kliknięcie w mapę, aby zamknąć tooltip
+    // Add a listener to close the tooltip when clicking on the map
     this.map.googleMap?.addListener('click', () => {
       this.tooltipInfoWindow?.close();
     });

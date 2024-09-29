@@ -17,6 +17,11 @@ export interface GetRouteRequest {
   endLocation: Direction;
 }
 
+export interface RouteResponse {
+  points: Direction[];
+  averageSpeed: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,8 +30,8 @@ export class RouteApiService {
 
   constructor(private http: HttpClient) { }
 
-  getRoutePoints(request: GetRouteRequest): Observable<Direction[]> {
-    return this.http.post<Direction[]>(`${this.apiUrl}/Direction`, request);
+  getRoutePoints(request: GetRouteRequest): Observable<RouteResponse> {
+    return this.http.post<RouteResponse>(`${this.apiUrl}/Direction`, request);
   }
 
   getAccidents(request: GetRouteRequest): Observable<BrdDto[]> {

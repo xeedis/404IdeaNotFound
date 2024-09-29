@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { RouteApiService, Direction, GetRouteRequest } from '../../shared/api/route-api.service';
+import { RouteApiService, Direction, GetRouteRequest, RouteResponse } from '../../shared/api/route-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +8,7 @@ import { RouteApiService, Direction, GetRouteRequest } from '../../shared/api/ro
 export class RoutePlanningService {
   constructor(private routeApiService: RouteApiService) {}
 
-  planRoute(startPoint: Direction, endPoint: Direction): Observable<Direction[]> {
+  planRoute(startPoint: Direction, endPoint: Direction): Observable<RouteResponse> {
     const request: GetRouteRequest = {
       startLocation: startPoint,
       endLocation: endPoint
