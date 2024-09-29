@@ -211,25 +211,25 @@ toggleAccidents() {
       });
     }
   }
-  
-  private getDirectionFromInput(controlName: 'startPoint' | 'endPoint'): Direction | null {
-    const input = this.routeForm.get(controlName)?.value;
-    if (typeof input === 'string') {
-      // If it's a string (address), we need to geocode it
-      return this.geocodeAddress(input);
-    } else if (input && typeof input === 'object' && 'lat' in input && 'lng' in input) {
-      // If it's already a Direction object, return it
-      return input as Direction;
-    }
-    return null;
-  }
-  
-  private geocodeAddress(address: string): Direction | null {
-    // This is a synchronous method, but in a real application, you'd want to use
-    // Google's Geocoding service asynchronously. For now, we'll return null.
-    console.warn('Geocoding not implemented. Address:', address);
-    return null;
-  }
+
+  // private getDirectionFromInput(controlName: 'startPoint' | 'endPoint'): Direction | null {
+  //   const input = this.routeForm.get(controlName)?.value;
+  //   if (typeof input === 'string') {
+  //     // If it's a string (address), we need to geocode it
+  //     return this.geocodeAddress(input);
+  //   } else if (input && typeof input === 'object' && 'lat' in input && 'lng' in input) {
+  //     // If it's already a Direction object, return it
+  //     return input as Direction;
+  //   }
+  //   return null;
+  // }
+
+  // private geocodeAddress(address: string): Direction | null {
+  //   // This is a synchronous method, but in a real application, you'd want to use
+  //   // Google's Geocoding service asynchronously. For now, we'll return null.
+  //   console.warn('Geocoding not implemented. Address:', address);
+  //   return null;
+  // }
 
   // loadPredefinedRoute() {
   //   const selectedRouteId = this.routeForm.get('selectedRoute')?.value;
@@ -391,7 +391,7 @@ toggleAccidents() {
             fillOpacity: 0.8,
             strokeWeight: 2,
             strokeColor: '#FFFFFF',
-            scale: 8,
+            scale: 12,
             labelOrigin: new google.maps.Point(0, -0.5)
           },
           label: {
@@ -447,6 +447,7 @@ toggleAccidents() {
     `;
 
     this.tooltipInfoWindow = new google.maps.InfoWindow({
+      headerContent: 'Average Speed',
       content: `<div id="route-tooltip">${this.routeTooltip}</div>`,
       position: position
     });
