@@ -48,6 +48,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   showAccidents: boolean = false;
   accidentMarkers: google.maps.Marker[] = [];
 
+  routeTooltip: string = '';
+  tooltipInfoWindow: google.maps.InfoWindow | null = null;
+
   constructor(
     private fb: FormBuilder,
     private ngZone: NgZone,
@@ -80,7 +83,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 }
 toggleAccidents() {
   this.showAccidents = !this.showAccidents;
-  if (this.showAccidents && this.startLocation && this.endLocation) {
+  if (this.showAccidents) {
     this.fetchAndDisplayAccidents();
   } else {
     this.clearAccidentMarkers();
@@ -192,6 +195,7 @@ toggleAccidents() {
           if (this.showAccidents) {
             this.fetchAndDisplayAccidents();
           }
+          this.addRouteTooltip(points);
         },
         error: (error) => {
           console.error('Error fetching route points:', error);
@@ -391,6 +395,33 @@ toggleAccidents() {
   private clearAccidentMarkers() {
     this.accidentMarkers.forEach(marker => marker.setMap(null));
     this.accidentMarkers = [];
+  }
+
+  private addRouteTooltip(points: Direction[]) {
+    if (this.tooltipInfoWindow) {
+      this.tooltipInfoWindow.close();
+    }
+
+    const midPoint = points[Math.floor(points.length / 2)];
+    
+    this.tooltipInfoWindow = new google.maps.InfoWindow({
+      content: `<div id="route-tooltip">${this.routeTooltip}</div>`,
+      position: midPoint
+    });
+
+    this.tooltipInfoWindow.open(this.map.googleMap);
+
+    // Dodajemy nasłuchiwanie na kliknięcie w mapę, aby zamknąć tooltip
+    this.map.googleMap?.addListener('click', () => {
+      this.tooltipInfoWindow?.close();
+    });
+  }
+
+  updateRouteTooltip(message: string) {
+    this.routeTooltip = message;
+    if (this.tooltipInfoWindow) {
+      this.tooltipInfoWindow.setContent(`<div id="route-tooltip">${this.routeTooltip}</div>`);
+    }
   }
 
 }
