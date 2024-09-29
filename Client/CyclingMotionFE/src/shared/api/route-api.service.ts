@@ -5,6 +5,13 @@ import { HttpClient } from '@angular/common/http';
 export interface Direction {
   lat: number;
   lng: number;
+  accidents?: Accident[];
+}
+
+export interface Accident {
+  id: number;
+  severity: 'low' | 'medium' | 'high';
+  description: string;
 }
 
 export interface GetRouteRequest {
@@ -24,4 +31,3 @@ export class RouteApiService {
     return this.http.post<Direction[]>(this.apiUrl, request);
   }
 }
-

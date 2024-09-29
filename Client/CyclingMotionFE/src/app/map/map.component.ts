@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit, ElementRef, NgZone, OnDest
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
-import { Direction } from '../../shared/api/route-api.service';
+import { Direction, Accident } from '../../shared/api/route-api.service';
 import { RoutePlanningService } from '../../shared/services/route-planning.service';
 import { DarkModeService } from '../../shared/services/dark-mode.service';
 import { takeUntil } from 'rxjs/operators';
@@ -43,6 +43,9 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   startLocation: Direction | null = null;
   endLocation: Direction | null = null;
+
+  accidentMarkers: google.maps.Marker[] = [];
+  showAccidents: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -176,6 +179,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           this.polylinePath = this.routePlanningService.drawRoute(this.map.googleMap!, points);
           this.toggleTrafficLayer();
+          this.clearAccidentMarkers();
+          this.addAccidentMarkers(points);
         },
         error: (error) => {
           console.error('Error fetching route points:', error);
@@ -330,6 +335,72 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map && this.map.googleMap) {
       this.map.googleMap.setOptions({ styles: this.mapStyles });
     }
+  }
+
+  addAccidentMarkers(points: Direction[]) {
+    points.forEach(point => {
+      if (point.accidents) {
+        point.accidents.forEach(accident => {
+          this.addAccidentMarker(point, accident);
+        });
+      }
+    });
+  }
+
+  addAccidentMarker(location: Direction, accident: Accident) {
+    if (this.map.googleMap) {
+      const marker = new google.maps.Marker({
+        position: location,
+        map: this.showAccidents ? this.map.googleMap : null,
+        icon: this.getAccidentIcon(accident.severity),
+        title: `Severity: ${accident.severity}\nDescription: ${accident.description}`
+      });
+
+      marker.addListener('click', () => {
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<h3>Accident Details</h3>
+                    <p>Severity: ${accident.severity}</p>
+                    <p>Description: ${accident.description}</p>`
+        });
+        infoWindow.open(this.map.googleMap, marker);
+      });
+
+      this.accidentMarkers.push(marker);
+    }
+  }
+
+  getAccidentIcon(severity: 'low' | 'medium' | 'high'): google.maps.Symbol {
+    let color: string;
+    switch (severity) {
+      case 'low':
+        color = 'green';
+        break;
+      case 'medium':
+        color = 'yellow';
+        break;
+      case 'high':
+        color = 'red';
+        break;
+    }
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      fillColor: color,
+      fillOpacity: 0.7,
+      strokeWeight: 1,
+      scale: 8
+    };
+  }
+
+  toggleAccidents() {
+    this.showAccidents = !this.showAccidents;
+    this.accidentMarkers.forEach(marker => {
+      marker.setMap(this.showAccidents ? this.map.googleMap! : null);
+    });
+  }
+
+  clearAccidentMarkers() {
+    this.accidentMarkers.forEach(marker => marker.setMap(null));
+    this.accidentMarkers = [];
   }
 
 }
