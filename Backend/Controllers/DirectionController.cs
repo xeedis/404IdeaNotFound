@@ -16,6 +16,6 @@ public class DirectionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<DirectionDto>>> GetRoute([FromQuery] DestinationDto destination) 
-        =>await _directionClient.GetDirectionAsync(destination.Origin, destination.Destination);
+    public async Task<ActionResult<List<DirectionDto>>> GetRoute([FromQuery] string origin, string destination) 
+        =>await _directionClient.GetDirectionAsync(origin, destination);
 }

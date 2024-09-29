@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Clients;
 
-[SuppressMessage("ReSharper", "ConvertToPrimaryConstructor")]
 public sealed class DirectionClient : IDirectionClient
 {
     private readonly DirectionOptions _options;
@@ -20,13 +19,13 @@ public sealed class DirectionClient : IDirectionClient
     }
 
     public async Task<List<DirectionDto>> GetDirectionAsync(string origin, string destination)
-    {
+    { 
         var request = new DirectionsRequest
         {
             ApiKey = _options.Key,
             Origin = origin,
             Destination = destination,
-            TravelMode = TravelMode.Driving
+            TravelMode = TravelMode.Bicycling
         };
 
         var response = await GoogleMaps.Directions.QueryAsync(request);
