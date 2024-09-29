@@ -179,8 +179,6 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           this.polylinePath = this.routePlanningService.drawRoute(this.map.googleMap!, points);
           this.toggleTrafficLayer();
-          this.clearAccidentMarkers();
-          this.addAccidentMarkers(points);
         },
         error: (error) => {
           console.error('Error fetching route points:', error);
@@ -337,21 +335,17 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  addAccidentMarkers(points: Direction[]) {
-    points.forEach(point => {
-      if (point.accidents) {
-        point.accidents.forEach(accident => {
-          this.addAccidentMarker(point, accident);
-        });
-      }
+  addAccidentMarkers(accidents: Accident[]) {
+    accidents.forEach(accident => {
+      this.addAccidentMarker(accident);
     });
   }
 
-  addAccidentMarker(location: Direction, accident: Accident) {
+  addAccidentMarker(accident: Accident) {
     if (this.map.googleMap) {
       const marker = new google.maps.Marker({
-        position: location,
-        map: this.showAccidents ? this.map.googleMap : null,
+        position: { lat: accident.lat, lng: accident.lng },
+        map: this.map.googleMap,
         icon: this.getAccidentIcon(accident.severity),
         title: `Severity: ${accident.severity}\nDescription: ${accident.description}`
       });
@@ -393,9 +387,19 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleAccidents() {
     this.showAccidents = !this.showAccidents;
-    this.accidentMarkers.forEach(marker => {
-      marker.setMap(this.showAccidents ? this.map.googleMap! : null);
-    });
+    if (this.showAccidents && this.startLocation && this.endLocation) {
+      this.routePlanningService.getAccidents(this.startLocation, this.endLocation).subscribe({
+        next: (accidents: Accident[]) => {
+          this.clearAccidentMarkers();
+          this.addAccidentMarkers(accidents);
+        },
+        error: (error) => {
+          console.error('Error fetching accidents:', error);
+        }
+      });
+    } else {
+      this.clearAccidentMarkers();
+    }
   }
 
   clearAccidentMarkers() {

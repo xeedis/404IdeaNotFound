@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { RouteApiService, Direction, GetRouteRequest } from '../../shared/api/route-api.service';
+import { RouteApiService, Direction, GetRouteRequest, Accident } from '../../shared/api/route-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -40,5 +40,9 @@ export class RoutePlanningService {
     map.fitBounds(bounds);
 
     return polyline;
+  }
+
+  getAccidents(startPoint: Direction, endPoint: Direction): Observable<Accident[]> {
+    return this.routeApiService.getAccidents(startPoint, endPoint);
   }
 }

@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 export interface Direction {
   lat: number;
   lng: number;
-  accidents?: Accident[];
 }
 
 export interface Accident {
   id: number;
   severity: 'low' | 'medium' | 'high';
   description: string;
+  lat: number;
+  lng: number;
 }
 
 export interface GetRouteRequest {
@@ -23,11 +24,21 @@ export interface GetRouteRequest {
   providedIn: 'root'
 })
 export class RouteApiService {
-  private apiUrl = 'http://localhost:5063/api/Direction'; // Replace with your actual API base URL
+  private apiUrl = 'http://localhost:5063/api'; // Base URL
 
   constructor(private http: HttpClient) { }
 
   getRoutePoints(request: GetRouteRequest): Observable<Direction[]> {
-    return this.http.post<Direction[]>(this.apiUrl, request);
+    return this.http.post<Direction[]>(`${this.apiUrl}/Direction`, request);
+  }
+
+  getAccidents(startPoint: Direction, endPoint: Direction): Observable<Accident[]> {
+    let params = new HttpParams()
+      .set('StartPoint.Lat', startPoint.lat.toString())
+      .set('StartPoint.Lng', startPoint.lng.toString())
+      .set('EndPoint.Lat', endPoint.lat.toString())
+      .set('EndPoint.Lng', endPoint.lng.toString());
+
+    return this.http.get<Accident[]>(`${this.apiUrl}/Accidents`, { params });
   }
 }
