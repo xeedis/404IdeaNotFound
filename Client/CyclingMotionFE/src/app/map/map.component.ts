@@ -7,6 +7,9 @@ import { RoutePlanningService } from '../../shared/services/route-planning.servi
 import { DarkModeService } from '../../shared/services/dark-mode.service';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { BrdDto } from '../../shared/api/route-api.service';
+import { GetRouteRequest } from '../../shared/api/route-api.service';
+import { RouteApiService } from '../../shared/api/route-api.service';
 
 @Component({
   selector: 'app-map',
@@ -16,6 +19,7 @@ import { Subject } from 'rxjs';
   styles: []
 })
 export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
+
   @ViewChild(GoogleMap) map!: GoogleMap;
   @ViewChild('startPointInput') startPointInput!: ElementRef;
   @ViewChild('endPointInput') endPointInput!: ElementRef;
@@ -44,11 +48,16 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   startLocation: Direction | null = null;
   endLocation: Direction | null = null;
 
+  accidents: BrdDto[] = [];
+  showAccidents: boolean = false;
+  accidentMarkers: google.maps.Marker[] = [];
+
   constructor(
     private fb: FormBuilder,
     private ngZone: NgZone,
     private routePlanningService: RoutePlanningService,
-    private darkModeService: DarkModeService
+    private darkModeService: DarkModeService,
+    private routeApiService: RouteApiService
   ) {
     this.routeForm = this.fb.group({
       startPoint: [''],
@@ -73,7 +82,14 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   this.destroy$.next();
   this.destroy$.complete();
 }
-
+toggleAccidents() {
+  this.showAccidents = !this.showAccidents;
+  if (this.showAccidents && this.startLocation && this.endLocation) {
+    this.fetchAndDisplayAccidents();
+  } else {
+    this.clearAccidentMarkers();
+  }
+}
   getCurrentLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -176,6 +192,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
           }
           this.polylinePath = this.routePlanningService.drawRoute(this.map.googleMap!, points);
           this.toggleTrafficLayer();
+          this.clearAccidentMarkers();
+          if (this.showAccidents) {
+            this.fetchAndDisplayAccidents();
+          }
         },
         error: (error) => {
           console.error('Error fetching route points:', error);
@@ -330,6 +350,51 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.map && this.map.googleMap) {
       this.map.googleMap.setOptions({ styles: this.mapStyles });
     }
+  }
+
+  private fetchAndDisplayAccidents() {
+    if (this.startLocation && this.endLocation) {
+      const request: GetRouteRequest = {
+        startLocation: this.startLocation,
+        endLocation: this.endLocation
+      };
+      this.routeApiService.getAccidents(request).subscribe({
+        next: (accidents: BrdDto[]) => {
+          this.accidents = accidents;
+          this.displayAccidents();
+        },
+        error: (error) => {
+          console.error('Error fetching accidents:', error);
+        }
+      });
+    }
+  }
+
+  private displayAccidents() {
+    this.clearAccidentMarkers();
+    if (this.map && this.map.googleMap) {
+      this.accidents.forEach(accident => {
+        const marker = new google.maps.Marker({
+          position: { lat: accident.lat, lng: accident.lng },
+          map: this.map.googleMap,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 7,
+            fillColor: "#FF0000",
+            fillOpacity: 0.7,
+            strokeWeight: 0
+          }
+        });
+        this.accidentMarkers.push(marker);
+      });
+    } else {
+      console.error('Google Map is not initialized');
+    }
+  }
+
+  private clearAccidentMarkers() {
+    this.accidentMarkers.forEach(marker => marker.setMap(null));
+    this.accidentMarkers = [];
   }
 
 }
